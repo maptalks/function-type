@@ -4,8 +4,8 @@ function createFunction(parameters, defaultType) {
 
     if (!isFunctionDefinition(parameters)) {
         fun = function () { return parameters; };
-        fun.isFeatureConstant = true;
-        fun.isZoomConstant = true;
+        // fun.isFeatureConstant = true;
+        // fun.isZoomConstant = true;
 
     } else {
         var zoomAndFeatureDependent = parameters.stops && typeof parameters.stops[0][0] === 'object';
@@ -49,21 +49,21 @@ function createFunction(parameters, defaultType) {
             fun = function (zoom, feature) {
                 return evaluateExponentialFunction({ stops: featureFunctionStops, base: parameters.base }, zoom)(zoom, feature);
             };
-            fun.isFeatureConstant = false;
-            fun.isZoomConstant = false;
+            // fun.isFeatureConstant = false;
+            // fun.isZoomConstant = false;
 
         } else if (zoomDependent) {
             fun = function (zoom) {
                 return innerFun(parameters, zoom);
             };
-            fun.isFeatureConstant = true;
-            fun.isZoomConstant = false;
+            // fun.isFeatureConstant = true;
+            // fun.isZoomConstant = false;
         } else {
             fun = function (zoom, feature) {
                 return innerFun(parameters, feature ? feature[parameters.property] : null);
             };
-            fun.isFeatureConstant = false;
-            fun.isZoomConstant = true;
+            // fun.isFeatureConstant = false;
+            // fun.isZoomConstant = true;
         }
     }
 
