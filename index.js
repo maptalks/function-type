@@ -47,20 +47,23 @@ function createFunction(parameters, defaultType) {
                 featureFunctionStops.push([featureFunctions[z].zoom, createFunction(featureFunctions[z])]);
             }
             fun = function (zoom, feature) {
-                return evaluateExponentialFunction({ stops: featureFunctionStops, base: parameters.base }, zoom)(zoom, feature);
+                const value = evaluateExponentialFunction({ stops: featureFunctionStops, base: parameters.base }, zoom)(zoom, feature);
+                return typeof value === 'function' ? value(zoom, feature) : value;
             };
             // fun.isFeatureConstant = false;
             // fun.isZoomConstant = false;
 
         } else if (zoomDependent) {
             fun = function (zoom) {
-                return innerFun(parameters, zoom);
+                const value = innerFun(parameters, zoom);
+                return typeof value === 'function' ? value(zoom) : value;
             };
             // fun.isFeatureConstant = true;
             // fun.isZoomConstant = false;
         } else {
             fun = function (zoom, feature) {
-                return innerFun(parameters, feature ? feature[parameters.property] : null);
+                const value = innerFun(parameters, feature ? feature[parameters.property] : null);
+                return typeof value === 'function' ? value(zoom, feature) : value;
             };
             // fun.isFeatureConstant = false;
             // fun.isZoomConstant = true;
@@ -187,12 +190,12 @@ export function hasFunctionDefinition(obj) {
 }
 
 export function interpolated(parameters) {
-    return createFunction(parameters, 'exponential');
+    return createFunction1(parameters, 'exponential');
 }
 
 
 export function piecewiseConstant(parameters) {
-    return createFunction(parameters, 'interval');
+    return createFunction1(parameters, 'interval');
 }
 
 /**
@@ -277,3 +280,17 @@ export function getFunctionTypeResources(t) {
     return res;
 }
 /*eslint-enable no-var, prefer-const*/
+
+function createFunction1(parameters, defaultType) {
+    if (!isFunctionDefinition(parameters)) {
+        return function () { return parameters; };
+    }
+    parameters = JSON.parse(JSON.stringify(parameters));
+    const stops = parameters.stops;
+    for (let i = 0; i < stops.length; i++) {
+        if (isFunctionDefinition(stops[i][1])) {
+            stops[i] = [stops[i][0], createFunction(stops[i][1], defaultType)];
+        }
+    }
+    return createFunction(parameters, defaultType);
+}
