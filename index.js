@@ -4,8 +4,8 @@ function createFunction(parameters, defaultType) {
 
     if (!isFunctionDefinition(parameters)) {
         fun = function () { return parameters; };
-        // fun.isFeatureConstant = true;
-        // fun.isZoomConstant = true;
+        fun.isFeatureConstant = true;
+        fun.isZoomConstant = true;
 
     } else {
         var zoomAndFeatureDependent = parameters.stops && typeof parameters.stops[0][0] === 'object';
@@ -50,23 +50,23 @@ function createFunction(parameters, defaultType) {
                 const value = evaluateExponentialFunction({ stops: featureFunctionStops, base: parameters.base }, zoom)(zoom, feature);
                 return typeof value === 'function' ? value(zoom, feature) : value;
             };
-            // fun.isFeatureConstant = false;
-            // fun.isZoomConstant = false;
+            fun.isFeatureConstant = false;
+            fun.isZoomConstant = false;
 
         } else if (zoomDependent) {
             fun = function (zoom) {
                 const value = innerFun(parameters, zoom);
                 return typeof value === 'function' ? value(zoom) : value;
             };
-            // fun.isFeatureConstant = true;
-            // fun.isZoomConstant = false;
+            fun.isFeatureConstant = true;
+            fun.isZoomConstant = false;
         } else {
             fun = function (zoom, feature) {
                 const value = innerFun(parameters, feature ? feature[parameters.property] : null);
                 return typeof value === 'function' ? value(zoom, feature) : value;
             };
-            // fun.isFeatureConstant = false;
-            // fun.isZoomConstant = true;
+            fun.isFeatureConstant = false;
+            fun.isZoomConstant = true;
         }
     }
 
@@ -286,11 +286,19 @@ function createFunction1(parameters, defaultType) {
         return function () { return parameters; };
     }
     parameters = JSON.parse(JSON.stringify(parameters));
+    let isZoomConstant = true;
+    let isFeatureConstant = true;
     const stops = parameters.stops;
     for (let i = 0; i < stops.length; i++) {
         if (isFunctionDefinition(stops[i][1])) {
-            stops[i] = [stops[i][0], createFunction(stops[i][1], defaultType)];
+            const fn = createFunction(stops[i][1], defaultType);
+            isZoomConstant = isZoomConstant && fn.isZoomConstant;
+            isFeatureConstant = isFeatureConstant && fn.isFeatureConstant;
+            stops[i] = [stops[i][0], fn];
         }
     }
-    return createFunction(parameters, defaultType);
+    const fn = createFunction(parameters, defaultType);
+    fn.isZoomConstant = isZoomConstant && fn.isZoomConstant;
+    fn.isFeatureConstant = isFeatureConstant && fn.isFeatureConstant;
+    return fn;
 }
