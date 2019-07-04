@@ -1,11 +1,11 @@
 /*eslint-disable no-var, prefer-const*/
 function createFunction(parameters, defaultType) {
     var fun;
-
+    var isFeatureConstant, isZoomConstant;
     if (!isFunctionDefinition(parameters)) {
         fun = function () { return parameters; };
-        fun.isFeatureConstant = true;
-        fun.isZoomConstant = true;
+        isFeatureConstant = true;
+        isZoomConstant = true;
 
     } else {
         var zoomAndFeatureDependent = parameters.stops && typeof parameters.stops[0][0] === 'object';
@@ -50,26 +50,27 @@ function createFunction(parameters, defaultType) {
                 const value = evaluateExponentialFunction({ stops: featureFunctionStops, base: parameters.base }, zoom)(zoom, feature);
                 return typeof value === 'function' ? value(zoom, feature) : value;
             };
-            fun.isFeatureConstant = false;
-            fun.isZoomConstant = false;
+            isFeatureConstant = false;
+            isZoomConstant = false;
 
         } else if (zoomDependent) {
             fun = function (zoom) {
                 const value = innerFun(parameters, zoom);
                 return typeof value === 'function' ? value(zoom) : value;
             };
-            fun.isFeatureConstant = true;
-            fun.isZoomConstant = false;
+            isFeatureConstant = true;
+            isZoomConstant = false;
         } else {
             fun = function (zoom, feature) {
                 const value = innerFun(parameters, feature ? feature[parameters.property] : null);
                 return typeof value === 'function' ? value(zoom, feature) : value;
             };
-            fun.isFeatureConstant = false;
-            fun.isZoomConstant = true;
+            isFeatureConstant = false;
+            isZoomConstant = true;
         }
     }
-
+    fun.isZoomConstant = isZoomConstant;
+    fun.isFeatureConstant = isFeatureConstant;
     return fun;
 }
 
