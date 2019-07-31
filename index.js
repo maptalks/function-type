@@ -292,7 +292,7 @@ function createFunction1(parameters, defaultType) {
     const stops = parameters.stops;
     for (let i = 0; i < stops.length; i++) {
         if (isFunctionDefinition(stops[i][1])) {
-            const fn = createFunction(stops[i][1], defaultType);
+            const fn = createFunction1(stops[i][1], defaultType);
             isZoomConstant = isZoomConstant && fn.isZoomConstant;
             isFeatureConstant = isFeatureConstant && fn.isFeatureConstant;
             stops[i] = [stops[i][0], fn];
