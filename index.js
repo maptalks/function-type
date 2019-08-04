@@ -290,13 +290,15 @@ function createFunction1(parameters, defaultType) {
     let isZoomConstant = true;
     let isFeatureConstant = true;
     const stops = parameters.stops;
-    for (let i = 0; i < stops.length; i++) {
-        if (isFunctionDefinition(stops[i][1])) {
-            const fn = createFunction1(stops[i][1], defaultType);
-            isZoomConstant = isZoomConstant && fn.isZoomConstant;
-            isFeatureConstant = isFeatureConstant && fn.isFeatureConstant;
-            stops[i] = [stops[i][0], fn];
-        }
+    if (stops) {
+        for (let i = 0; i < stops.length; i++) {
+            if (isFunctionDefinition(stops[i][1])) {
+                const fn = createFunction1(stops[i][1], defaultType);
+                isZoomConstant = isZoomConstant && fn.isZoomConstant;
+                isFeatureConstant = isFeatureConstant && fn.isFeatureConstant;
+                stops[i] = [stops[i][0], fn];
+            }
+        }    
     }
     const fn = createFunction(parameters, defaultType);
     fn.isZoomConstant = isZoomConstant && fn.isZoomConstant;
