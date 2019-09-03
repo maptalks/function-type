@@ -298,7 +298,7 @@ function createFunction1(parameters, defaultType) {
                 isFeatureConstant = isFeatureConstant && fn.isFeatureConstant;
                 stops[i] = [stops[i][0], fn];
             }
-        }    
+        }
     }
     const fn = createFunction(parameters, defaultType);
     fn.isZoomConstant = isZoomConstant && fn.isZoomConstant;
