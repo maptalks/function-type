@@ -1,3 +1,10 @@
+import { ColorIn } from 'colorin';
+var isMapSupported = typeof Map === 'function';
+var colorInCache;
+if (isMapSupported) {
+    colorInCache = new Map();
+}
+
 /*eslint-disable no-var, prefer-const*/
 function createFunction(parameters, defaultType) {
     var fun;
@@ -22,6 +29,8 @@ function createFunction(parameters, defaultType) {
             innerFun = evaluateCategoricalFunction;
         } else if (type === 'identity') {
             innerFun = evaluateIdentityFunction;
+        } else if (type === 'colorexponential') {
+            innerFun = evaluateColorExponentialFunction;
         } else {
             throw new Error('Unknown function type "' + type + '"');
         }
@@ -124,6 +133,31 @@ function evaluateExponentialFunction(parameters, input) {
         );
     }
 }
+const COLORIN_OPTIONS = {
+    width: 100,
+    height: 1
+};
+function evaluateColorExponentialFunction(parameters, input) {
+    const stops = parameters.stops;
+    if (stops && stops.length > 1) {
+        let colorIn;
+        if (colorInCache) {
+            const key = JSON.stringify(stops);
+            if (!colorInCache.has(key)) {
+                const colorIn = new ColorIn(stops, COLORIN_OPTIONS);
+                colorInCache.set(key, colorIn);
+            }
+            colorIn = colorInCache.get(key);
+        } else {
+            colorIn = new ColorIn(stops, COLORIN_OPTIONS);
+        }
+        const [r, g, b] = colorIn.getColor(input);
+        return `rgb(${r},${g},${b})`;
+    } else if (stops && stops.length === 1) {
+        return stops[0][1];
+    }
+    return null;
+}
 
 function evaluateIdentityFunction(parameters, input) {
     return coalesce(input, parameters.default);
@@ -144,7 +178,7 @@ function interpolate(input, base, inputLower, inputUpper, outputLower, outputUpp
 }
 
 function interpolateNumber(input, base, inputLower, inputUpper, outputLower, outputUpper) {
-    var difference =  inputUpper - inputLower;
+    var difference = inputUpper - inputLower;
     var progress = input - inputLower;
 
     var ratio;
@@ -224,9 +258,7 @@ export function loadFunctionTypes(obj, argFn) {
         }
         return hit ? multResult : obj;
     }
-    var result = {
-            '__fn_types_loaded' : true
-        },
+    var result = { '__fn_types_loaded': true },
         props = [],
         p;
     for (p in obj) {
