@@ -5,7 +5,7 @@
   "module": "./index.js",
   "description": "function type support for maptalks",
   "dependencies": {
-    "colorin": "^0.3.0"
+    "colorin": "^0.4.0"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^0.1.30",
