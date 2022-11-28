@@ -14,7 +14,7 @@
     "eslint-plugin-mocha": "^5.1.0",
     "esm": "^3.0.64",
     "expect.js": "^0.3.1",
-    "mocha": "^5.2.0"
+    "mocha": "^10.1.0"
   },
   "scripts": {
     "pretest": "eslint index.js test.js",
