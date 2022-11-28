@@ -15,6 +15,10 @@ const symbol = {
     },
 };
 
+function rgbatoStr(rgba) {
+    return rgba.join(',');
+}
+
 describe('color-interpolate', () => {
     it('interpolate by property', () => {
         const result = loadFunctionTypes(symbol, () => {
@@ -22,7 +26,7 @@ describe('color-interpolate', () => {
                 value: 1
             }];
         });
-        expect(result.markerFill).to.be('rgb(201,0,0)');
+        expect(rgbatoStr(result.markerFill)).to.be(rgbatoStr([0.788235294117647, 0, 0, 1]));
     });
     it('interpolate by property < min', () => {
         const result = loadFunctionTypes(symbol, () => {
@@ -30,7 +34,7 @@ describe('color-interpolate', () => {
                 value: -100
             }];
         });
-        expect(result.markerFill).to.be('rgb(252,0,0)');
+        expect(rgbatoStr(result.markerFill)).to.be(rgbatoStr([0.9882352941176471, 0, 0, 1]));
     });
     it('interpolate by property > max', () => {
         const result = loadFunctionTypes(symbol, () => {
@@ -38,7 +42,7 @@ describe('color-interpolate', () => {
                 value: 100
             }];
         });
-        expect(result.markerFill).to.be('rgb(252,252,252)');
+        expect(rgbatoStr(result.markerFill)).to.be(rgbatoStr([0.9882352941176471, 0.9882352941176471, 0.9882352941176471, 1]));
     });
     it('interpolate by property colors.length=1', () => {
         const obj = {
@@ -68,6 +72,6 @@ describe('color-interpolate', () => {
                 value: 11
             }];
         });
-        expect(result.markerFill).to.be('rgb(54,54,54)');
+        expect(rgbatoStr(result.markerFill)).to.be(rgbatoStr([0.21176470588235294, 0.21176470588235294, 0.21176470588235294, 1]));
     });
 });
