@@ -151,8 +151,8 @@ function evaluateColorInterpolateFunction(parameters, input) {
         } else {
             colorIn = new ColorIn(stops, COLORIN_OPTIONS);
         }
-        const [r, g, b] = colorIn.getColor(input);
-        return `rgb(${r},${g},${b})`;
+        const [r, g, b, a] = colorIn.getColor(input);
+        return [r / 255, g / 255, b / 255, a / 255];
     } else if (stops && stops.length === 1) {
         return stops[0][1];
     }
