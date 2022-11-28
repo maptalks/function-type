@@ -7,7 +7,7 @@ const colors = [
     [10, 'white']
 ];
 
-const obj = {
+const symbol = {
     markerFill: {
         property: 'value',
         stops: colors,
@@ -17,7 +17,7 @@ const obj = {
 
 describe('color-interpolate', () => {
     it('interpolate by property', () => {
-        const result = loadFunctionTypes(obj, () => {
+        const result = loadFunctionTypes(symbol, () => {
             return [11, {
                 value: 1
             }];
@@ -25,7 +25,7 @@ describe('color-interpolate', () => {
         expect(result.markerFill).to.be('rgb(201,0,0)');
     });
     it('interpolate by property < min', () => {
-        const result = loadFunctionTypes(obj, () => {
+        const result = loadFunctionTypes(symbol, () => {
             return [11, {
                 value: -100
             }];
@@ -33,7 +33,7 @@ describe('color-interpolate', () => {
         expect(result.markerFill).to.be('rgb(252,0,0)');
     });
     it('interpolate by property > max', () => {
-        const result = loadFunctionTypes(obj, () => {
+        const result = loadFunctionTypes(symbol, () => {
             return [11, {
                 value: 100
             }];
