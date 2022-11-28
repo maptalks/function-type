@@ -29,8 +29,8 @@ function createFunction(parameters, defaultType) {
             innerFun = evaluateCategoricalFunction;
         } else if (type === 'identity') {
             innerFun = evaluateIdentityFunction;
-        } else if (type === 'colorexponential') {
-            innerFun = evaluateColorExponentialFunction;
+        } else if (type === 'color-interpolate') {
+            innerFun = evaluateColorInterpolateFunction;
         } else {
             throw new Error('Unknown function type "' + type + '"');
         }
@@ -137,7 +137,7 @@ const COLORIN_OPTIONS = {
     width: 100,
     height: 1
 };
-function evaluateColorExponentialFunction(parameters, input) {
+function evaluateColorInterpolateFunction(parameters, input) {
     const stops = parameters.stops;
     if (stops && stops.length > 1) {
         let colorIn;
