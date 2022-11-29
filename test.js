@@ -1,5 +1,9 @@
 var expect = require('expect.js');
 const { loadFunctionTypes } = require('./index');
+import { registerCanvas } from 'colorin';
+const { createCanvas } = require('@napi-rs/canvas');
+const canvas = createCanvas(1, 1);
+registerCanvas(canvas);
 
 const colors = [
     [0, 'red'],
