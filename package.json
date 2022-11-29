@@ -5,10 +5,9 @@
   "module": "./index.js",
   "description": "function type support for maptalks",
   "dependencies": {
-    "colorin": "^0.4.0"
+    "colorin": "^0.2.0"
   },
   "devDependencies": {
-    "@napi-rs/canvas": "^0.1.30",
     "eslint": "^5.0.1",
     "eslint-config-maptalks": "^0.2.1",
     "eslint-plugin-mocha": "^5.1.0",
