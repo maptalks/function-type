@@ -10,10 +10,11 @@ function createFunction(parameters, defaultType) {
     var fun;
     var isFeatureConstant, isZoomConstant;
     if (!isFunctionDefinition(parameters)) {
-        fun = function () { return parameters; };
+        fun = function () {
+            return parameters;
+        };
         isFeatureConstant = true;
         isZoomConstant = true;
-
     } else {
         var zoomAndFeatureDependent = parameters.stops && typeof parameters.stops[0][0] === 'object';
         var featureDependent = zoomAndFeatureDependent || parameters.property !== undefined;
@@ -31,6 +32,8 @@ function createFunction(parameters, defaultType) {
             innerFun = evaluateIdentityFunction;
         } else if (type === 'color-interpolate') {
             innerFun = evaluateColorInterpolateFunction;
+        } else if (type === 'calculate-expression') {
+            innerFun = evaluateCalculateExpressionFunction;
         } else {
             throw new Error('Unknown function type "' + type + '"');
         }
@@ -61,7 +64,6 @@ function createFunction(parameters, defaultType) {
             };
             isFeatureConstant = false;
             isZoomConstant = false;
-
         } else if (zoomDependent) {
             fun = function (zoom) {
                 const value = innerFun(parameters, zoom);
@@ -118,19 +120,10 @@ function evaluateExponentialFunction(parameters, input) {
 
     if (i === 0) {
         return parameters.stops[i][1];
-
     } else if (i === parameters.stops.length) {
         return parameters.stops[i - 1][1];
-
     } else {
-        return interpolate(
-            input,
-            base,
-            parameters.stops[i - 1][0],
-            parameters.stops[i][0],
-            parameters.stops[i - 1][1],
-            parameters.stops[i][1]
-        );
+        return interpolate(input, base, parameters.stops[i - 1][0], parameters.stops[i][0], parameters.stops[i - 1][1], parameters.stops[i][1]);
     }
 }
 const COLORIN_OPTIONS = {
@@ -160,7 +153,81 @@ function evaluateColorInterpolateFunction(parameters, input) {
 }
 
 function evaluateIdentityFunction(parameters, input) {
+    // console.log('parameters11', parameters)
+    // console.log('input11', input)
+    // console.log('coalesce',coalesce(input, parameters.default))
     return coalesce(input, parameters.default);
+}
+// 2添加修改计算函数
+// 处理空字符串和未定义属性的函数
+function evaluateCalculateExpressionFunction(parameters, input) {
+    console.log('parameters', parameters);
+    const targetVariable = String(parameters.property);
+    const expression = parameters.expression;
+    const newValue = input;
+    console.log('input', input);
+
+    // 定义函数来替换表达式中的变量
+    function traverseAndAssign(expression, targetVariable, newValue) {
+        const newValueAsNumber = Number(newValue);
+        const targetVariableAsString = String(targetVariable);
+
+        if (Array.isArray(expression)) {
+            return expression.map(subExpr => traverseAndAssign(subExpr, targetVariableAsString, newValueAsNumber));
+        } else if (expression === targetVariableAsString) {
+            return newValueAsNumber;
+        } else {
+            return expression;
+        }
+    }
+
+    // 定义函数来计算表达式的结果
+    function evaluateExpression(expression) {
+        if (Array.isArray(expression)) {
+            const operator = expression[0];
+
+            if (!['+', '-', '*', '/'].includes(operator)) {
+                throw new Error(`Unknown operator: ${operator}`);
+            }
+
+            const operands = expression.slice(1).map(op => evaluateExpression(op));
+            console.log('operands', operands);
+
+            switch (operator) {
+            case '+':
+                return operands.reduce((acc, curr) => acc + curr, 0);
+            case '-':
+                return operands.reduce((acc, curr) => acc - curr);
+            case '*':
+                return operands.reduce((acc, curr) => acc * curr, 1);
+            case '/':
+                // 如果发现有零作为除数，返回默认值
+                if (operands.some(op => op === 0)) {
+                    return parameters.default;
+                }
+                return operands.reduce((acc, curr) => acc / curr);
+            default:
+                throw new Error(`Unsupported operator: ${operator}`);
+            }
+        } else if (typeof expression === 'number') {
+            return expression;
+        } else {
+            throw new Error('Invalid expression format');
+        }
+    }
+
+    // 使用 coalesce 函数处理结果中的默认值
+    function coalesce(value) {
+        return value === null || value === undefined || value === '' || isNaN(value) ? parameters.default : value;
+    }
+
+    // 如果 input 存在且大于0，则处理表达式
+    if (input !== undefined && input !== null && input !== '' && !isNaN(input) && !(input < 0)) {
+        const updatedExpression = traverseAndAssign(expression, targetVariable, newValue);
+        return coalesce(evaluateExpression(updatedExpression));
+    } else {
+        return coalesce(parameters.default);
+    }
 }
 
 function interpolate(input, base, inputLower, inputUpper, outputLower, outputUpper) {
@@ -188,7 +255,7 @@ function interpolateNumber(input, base, inputLower, inputUpper, outputLower, out
         ratio = (Math.pow(base, progress) - 1) / (Math.pow(base, difference) - 1);
     }
 
-    return (outputLower * (1 - ratio)) + (outputUpper * ratio);
+    return outputLower * (1 - ratio) + outputUpper * ratio;
 }
 
 function interpolateArray(input, base, inputLower, inputUpper, outputLower, outputUpper) {
@@ -206,8 +273,16 @@ function interpolateArray(input, base, inputLower, inputUpper, outputLower, outp
  * @memberOf MapboxUtil
  */
 export function isFunctionDefinition(obj) {
-    return obj && typeof obj === 'object' && (obj.stops || obj.property && obj.type === 'identity');
+    return (
+        obj &&
+    typeof obj === 'object' &&
+    (obj.stops || (obj.property && obj.type === 'identity') || (obj.expression && obj.type === 'calculate-expression'))
+    );
 }
+
+// export function isFunctionDefinition(obj) {
+//     return obj && typeof obj === 'object' && (obj.stops || (obj.property && obj.type === 'identity'));
+// }
 
 /**
  * Check if obj's properties has function definition
@@ -228,7 +303,6 @@ export function interpolated(parameters) {
     return createFunction1(parameters, 'exponential');
 }
 
-
 export function piecewiseConstant(parameters) {
     return createFunction1(parameters, 'interval');
 }
@@ -239,6 +313,7 @@ export function piecewiseConstant(parameters) {
  * @return {Object}   loaded object
  * @memberOf MapboxUtil
  */
+
 export function loadFunctionTypes(obj, argFn) {
     if (!obj) {
         return null;
@@ -258,7 +333,7 @@ export function loadFunctionTypes(obj, argFn) {
         }
         return hit ? multResult : obj;
     }
-    var result = { '__fn_types_loaded': true },
+    var result = { fnTypesLoaded: true },
         props = [],
         p;
     for (p in obj) {
@@ -316,7 +391,9 @@ export function getFunctionTypeResources(t) {
 
 function createFunction1(parameters, defaultType) {
     if (!isFunctionDefinition(parameters)) {
-        return function () { return parameters; };
+        return function () {
+            return parameters;
+        };
     }
     parameters = JSON.parse(JSON.stringify(parameters));
     let isZoomConstant = true;
