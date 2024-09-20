@@ -153,19 +153,14 @@ function evaluateColorInterpolateFunction(parameters, input) {
 }
 
 function evaluateIdentityFunction(parameters, input) {
-    // console.log('parameters11', parameters)
-    // console.log('input11', input)
-    // console.log('coalesce',coalesce(input, parameters.default))
     return coalesce(input, parameters.default);
 }
 // 2添加修改计算函数
 // 处理空字符串和未定义属性的函数
 function evaluateCalculateExpressionFunction(parameters, input) {
-    console.log('parameters', parameters);
     const targetVariable = String(parameters.property);
     const expression = parameters.expression;
     const newValue = input;
-    console.log('input', input);
 
     // 定义函数来替换表达式中的变量
     function traverseAndAssign(expression, targetVariable, newValue) {
@@ -191,8 +186,6 @@ function evaluateCalculateExpressionFunction(parameters, input) {
             }
 
             const operands = expression.slice(1).map(op => evaluateExpression(op));
-            console.log('operands', operands);
-
             switch (operator) {
             case '+':
                 return operands.reduce((acc, curr) => acc + curr, 0);
@@ -333,7 +326,7 @@ export function loadFunctionTypes(obj, argFn) {
         }
         return hit ? multResult : obj;
     }
-    var result = { fnTypesLoaded: true },
+    var result = { '__fn_types_loaded': true },
         props = [],
         p;
     for (p in obj) {
