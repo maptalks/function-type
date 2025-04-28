@@ -5,6 +5,15 @@ if (isMapSupported) {
     colorInCache = new Map();
 }
 
+
+function isNull(value) {
+    return value === null || value === undefined || value === '';
+}
+
+function isNotNull(value) {
+    return !isNull(value);
+}
+
 /*eslint-disable no-var, prefer-const*/
 function createFunction(parameters, defaultType) {
     var fun;
@@ -17,7 +26,7 @@ function createFunction(parameters, defaultType) {
         isZoomConstant = true;
     } else {
         var zoomAndFeatureDependent = parameters.stops && typeof parameters.stops[0][0] === 'object';
-        var featureDependent = zoomAndFeatureDependent || parameters.property !== undefined;
+        var featureDependent = zoomAndFeatureDependent || isNotNull(parameters.property);
         var zoomDependent = zoomAndFeatureDependent || !featureDependent;
         var type = parameters.type || defaultType || 'exponential';
 
@@ -86,9 +95,9 @@ function createFunction(parameters, defaultType) {
 }
 
 function coalesce(a, b, c) {
-    if (a !== undefined) return a;
-    if (b !== undefined) return b;
-    if (c !== undefined) return c;
+    if (isNotNull(a)) return a;
+    if (isNotNull(b)) return b;
+    if (isNotNull(c)) return c;
     return null;
 }
 
@@ -109,7 +118,7 @@ function evaluateIntervalFunction(parameters, input) {
 }
 
 function evaluateExponentialFunction(parameters, input) {
-    var base = parameters.base !== undefined ? parameters.base : 1;
+    var base = isNotNull(parameters.base) ? parameters.base : 1;
 
     var i = 0;
     while (true) {
@@ -211,11 +220,11 @@ function evaluateCalculateExpressionFunction(parameters, input) {
 
     // 使用 coalesce 函数处理结果中的默认值
     function coalesce(value) {
-        return value === null || value === undefined || value === '' || isNaN(value) ? parameters.default : value;
+        return isNull(value) ? parameters.default : value;
     }
 
     // 如果 input 存在且大于0，则处理表达式
-    if (input !== undefined && input !== null && input !== '' && !isNaN(input) && !(input < 0)) {
+    if (isNotNull(input) && !isNaN(input) && !(input < 0)) {
         const updatedExpression = traverseAndAssign(expression, targetVariable, newValue);
         return coalesce(evaluateExpression(updatedExpression));
     } else {
