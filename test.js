@@ -141,5 +141,17 @@ describe('specs', () => {
             });
             expect(result.lineWidth).to.be(4000); // 0 as divisor
         });
+
+        it('default value consider null/undefined/""', () => {
+
+            const values = ['', null, undefined];
+            values.forEach(v => {
+                const result = loadFunctionTypes(symbolCalculateExpression, () => {
+                    return [11, { '管径': v }];
+                });
+                expect(result.lineWidth).to.be(4000); // 0 as divisor
+            });
+
+        });
     });
 });

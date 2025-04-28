@@ -220,7 +220,7 @@ function evaluateCalculateExpressionFunction(parameters, input) {
 
     // 使用 coalesce 函数处理结果中的默认值
     function coalesce(value) {
-        return isNull(value) ? parameters.default : value;
+        return isNull(value) || isNaN(value) ? parameters.default : value;
     }
 
     // 如果 input 存在且大于0，则处理表达式
@@ -277,8 +277,8 @@ function interpolateArray(input, base, inputLower, inputUpper, outputLower, outp
 export function isFunctionDefinition(obj) {
     return (
         obj &&
-    typeof obj === 'object' &&
-    (obj.stops || (obj.property && obj.type === 'identity') || (obj.expression && obj.type === 'calculate-expression'))
+        typeof obj === 'object' &&
+        (obj.stops || (obj.property && obj.type === 'identity') || (obj.expression && obj.type === 'calculate-expression'))
     );
 }
 
