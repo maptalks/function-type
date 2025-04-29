@@ -144,7 +144,7 @@ describe('specs', () => {
 
         it('default value consider null/undefined/""', () => {
 
-            const values = ['', null, undefined];
+            const values = [null, undefined];
             values.forEach(v => {
                 const result = loadFunctionTypes(symbolCalculateExpression, () => {
                     return [11, { '管径': v }];

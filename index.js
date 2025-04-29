@@ -7,11 +7,15 @@ if (isMapSupported) {
 
 
 function isNull(value) {
-    return value === null || value === undefined || value === '';
+    return value === null || value === undefined;
 }
 
 function isNotNull(value) {
     return !isNull(value);
+}
+
+function isEmptyString(value) {
+    return value === '';
 }
 
 /*eslint-disable no-var, prefer-const*/
@@ -118,7 +122,7 @@ function evaluateIntervalFunction(parameters, input) {
 }
 
 function evaluateExponentialFunction(parameters, input) {
-    var base = isNotNull(parameters.base) ? parameters.base : 1;
+    var base = isNotNull(parameters.base) && !isEmptyString(parameters.base) ? parameters.base : 1;
 
     var i = 0;
     while (true) {
@@ -220,11 +224,11 @@ function evaluateCalculateExpressionFunction(parameters, input) {
 
     // 使用 coalesce 函数处理结果中的默认值
     function coalesce(value) {
-        return isNull(value) || isNaN(value) ? parameters.default : value;
+        return (isNull(value) || isEmptyString(value) || isNaN(value)) ? parameters.default : value;
     }
 
     // 如果 input 存在且大于0，则处理表达式
-    if (isNotNull(input) && !isNaN(input) && !(input < 0)) {
+    if (isNotNull(input) && !isEmptyString(input) && !isNaN(input) && !(input < 0)) {
         const updatedExpression = traverseAndAssign(expression, targetVariable, newValue);
         return coalesce(evaluateExpression(updatedExpression));
     } else {
